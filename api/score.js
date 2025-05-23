@@ -1,6 +1,6 @@
 import formidable from "formidable";
 import fs from "fs";
-import { Readable } from "stream";
+import { NextResponse } from "next/server";
 
 export const config = {
   api: {
@@ -9,30 +9,42 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  const form = formidable({ multiples: false });
+  const form = new formidable.IncomingForm();
   form.parse(req, async (err, fields, files) => {
-    if (err) return res.status(500).json({ error: "上传失败" });
+    if (err) {
+      return res.status(500).json({ error: "上传失败" });
+    }
 
-    const file = files.file[0];
-    const apiKey = process.env.DEEPSEEK_API_KEY;
-    const imageBuffer = fs.readFileSync(file.filepath);
+    const filePath = files.file.filepath;
+    const fileBuffer = fs.readFileSync(filePath);
 
+    // 调用 DeepSeek 或 GPT-4 vision 接口（根据你选用的模型）
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "deepseek-coder",
         messages: [
-          { role: "system", content: "你是图像视觉分析师，请根据图像质量从1到5分数维度评价" },
-          { role: "user", content: [{ type: "image_url", image_url: { url: `data:image/png;base64,${imageBuffer.toString("base64")}` } }] }
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "请分析这张图像的设计质量并给出 0 到 10 的评分" },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/png;base64,${fileBuffer.toString("base64")}`,
+                },
+              },
+            ],
+          },
         ],
       }),
     });
 
     const result = await response.json();
-    res.status(200).json({ result });
+    res.status(200).json(result);
   });
 }
