@@ -1,11 +1,24 @@
+
 <!DOCTYPE html>
 <html lang="zh">
   <head>
     <meta charset="UTF-8" />
-    <title>AI 视觉打分</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 视觉评分系统 - DeepSeek 实时打分</title>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+  <body class="bg-white text-center py-10">
+    <h1 class="text-4xl font-bold text-gray-800">AI 视觉评分系统 - DeepSeek 实时打分</h1>
+    <div class="mt-8">
+      <input type="file" id="fileInput" class="border p-2 rounded" />
+      <button onclick="analyze()" class="ml-4 bg-blue-500 text-white px-4 py-2 rounded">上传并分析</button>
+    </div>
+    <div id="result" class="mt-8 text-lg font-medium text-green-600"></div>
+
+    <script>
+      function analyze() {
+        document.getElementById('result').innerText = "（模拟）图像分析中... 打分结果为 86 分";
+      }
+    </script>
   </body>
 </html>
