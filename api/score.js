@@ -1,6 +1,5 @@
 import formidable from "formidable";
 import fs from "fs";
-import { NextResponse } from "next/server";
 
 export const config = {
   api: {
@@ -11,15 +10,13 @@ export const config = {
 export default async function handler(req, res) {
   const form = new formidable.IncomingForm();
   form.parse(req, async (err, fields, files) => {
-    if (err) {
-      return res.status(500).json({ error: "上传失败" });
-    }
+    if (err) return res.status(500).json({ error: "上传失败" });
 
-    const filePath = files.file.filepath;
-    const fileBuffer = fs.readFileSync(filePath);
+    const filePath = files.file[0].filepath;
+    const buffer = fs.readFileSync(filePath);
 
-    // 调用 DeepSeek 或 GPT-4 vision 接口（根据你选用的模型）
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    // 伪造 GPT 请求体（替换为真实 deepseek）
+    const result = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
@@ -31,11 +28,11 @@ export default async function handler(req, res) {
           {
             role: "user",
             content: [
-              { type: "text", text: "请分析这张图像的设计质量并给出 0 到 10 的评分" },
+              { type: "text", text: "请从视觉设计角度对这张图打 0-10 分" },
               {
                 type: "image_url",
                 image_url: {
-                  url: `data:image/png;base64,${fileBuffer.toString("base64")}`,
+                  url: `data:image/png;base64,${buffer.toString("base64")}`,
                 },
               },
             ],
@@ -44,7 +41,7 @@ export default async function handler(req, res) {
       }),
     });
 
-    const result = await response.json();
-    res.status(200).json(result);
+    const json = await result.json();
+    res.status(200).json({ result: json });
   });
 }
